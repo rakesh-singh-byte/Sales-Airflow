@@ -26,6 +26,7 @@ This Airflow project is designed to automate the ETL process for sales data. It 
 ## Directory Structure
 ```
 .
+├── LICENSE
 ├── dags
 │   └── sales
 │       ├── load_liquor_sales_raw_data.py
