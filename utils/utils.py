@@ -41,6 +41,13 @@ def download_files_from_s3(bucket_name, file_prefix, local_path_dir, aws_conn_id
         logging.error(f"Error downloading files from S3: {str(e)}")
         raise
 
+def upload_files_to_s3(bucket_name, local_file_path, s3_key=None):
+    """Upload a file to an S3 bucket."""
+    if not s3_key:
+        s3_key = os.path.basename(local_file_path)
+    hook = S3Hook(aws_conn_id='aws_default')  # Adjust aws_conn_id as needed
+    hook.load_file(filename=local_file_path, bucket_name=bucket_name, key=s3_key, replace=True)
+    print(f"File uploaded to s3://{bucket_name}/{s3_key}")
 
 # Ingest files into PostgreSQL
 def ingest_files_to_postgres(local_path_dir, file_prefix, database_name, table_name, postgres_conn_id, **kwargs):

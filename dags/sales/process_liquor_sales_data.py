@@ -9,8 +9,8 @@ import os
 from airflow.models import Variable
 
 dbt_directory = Variable.get("DBT_DIR", default_var='/Users/rakeshsingh/Personal/dbt/')
-email_recipient = Variable.get("EMAIL_RECIPIENT", default_var='rakesh.singh@tothenew.com')
 project_name = Variable.get("SALES_PROJECT_NAME", default_var='Sales-Analytics')
+email_recipient = Variable.get("EMAIL_RECIPIENT", default_var='rakesh.singh@tothenew.com')
 failure_email_subject = Variable.get("FAILURE_EMAIL_SUBJECT", default_var='DAG Failure Notification')
 failure_email_content = Variable.get(
     "FAILURE_EMAIL_CONTENT",
