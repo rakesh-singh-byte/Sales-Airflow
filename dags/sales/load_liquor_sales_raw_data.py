@@ -39,7 +39,7 @@ liquor_sales_raw_data_table_sql = Variable.get("LIQUOR_SALES_TABLE_SQL") # This 
 liquor_sales_database = Variable.get("LIQUOR_SALES_DATABASE", default_var='sales_analytics') # This need to configure 
 data_directory = f'{dbt_directory}/{project_name}/data'
 
-# Ensure the local directory exists
+# Ensure the data directory exists
 os.makedirs(data_directory, exist_ok=True)
 
 # Define default_args

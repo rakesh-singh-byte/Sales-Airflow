@@ -39,7 +39,7 @@ sales_raw_data_table_sql = Variable.get("SALES_TABLE_SQL") # This need to config
 sales_database = Variable.get("SALES_DATABASE", default_var='sales_analytics')
 data_directory = f'{dbt_directory}/{project_name}/data'
 
-# Ensure the local directory exists
+# Ensure the data directory exists
 os.makedirs(data_directory, exist_ok=True)
 
 # Define default_args

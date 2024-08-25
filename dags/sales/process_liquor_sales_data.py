@@ -17,8 +17,8 @@ failure_email_content = Variable.get(
     default_var="""<h3>Dear Team,</h3><p>The DAG <strong>'sales_data_pipeline'</strong> failed.</p>"""
 )
 dbt_sales_project_directory = f'{dbt_directory}/{project_name}/'
-print("*"*80)
-print(dbt_sales_project_directory)
+
+
 # Define default arguments for the DAG
 default_args = {
     'owner': 'airflow',

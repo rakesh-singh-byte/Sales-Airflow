@@ -1,0 +1,17 @@
+.
+├── dags
+│   └── sales
+│       ├── load_liquor_sales_raw_data.py
+│       ├── load_sales_raw_data.py
+│       ├── process_liquor_sales_data.py
+│       └── sales_config_backup.py
+├── data
+│   ├── connections.json
+│   └── variables.json
+├── plugins
+├── requirements.txt
+├── structure.txt
+└── utils
+    └── utils.py
+
+6 directories, 9 files
