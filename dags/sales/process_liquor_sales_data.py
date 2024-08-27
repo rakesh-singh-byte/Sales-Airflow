@@ -82,7 +82,7 @@ def run_dbt_command(command: str, cwd: str = dbt_sales_project_directory) -> Non
     try:
         # Run the dbt command and capture the output
         result = subprocess.run(
-            command,
+            f"{command} --target {env_vars['env'].lower()}",
             shell=True,  # Execute command through the shell
             check=True,  # Raise CalledProcessError if command fails
             cwd=cwd,  # Working directory for the command
