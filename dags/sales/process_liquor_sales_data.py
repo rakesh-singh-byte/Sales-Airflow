@@ -15,11 +15,11 @@ Key Components:
 
 Configuration:
 - Airflow Variables:
-  - `DBT_DIR`: Directory path for the DBT project (default: '/Users/rakeshsingh/Personal/dbt/')
-  - `SALES_PROJECT_NAME`: Name of the sales project (default: 'Sales-Analytics')
-  - `EMAIL_RECIPIENT`: Recipient email address for failure notifications (default: 'rakesh.singh@tothenew.com')
-  - `FAILURE_EMAIL_SUBJECT`: Subject line for failure notifications (default: 'DAG Failure Notification')
-  - `FAILURE_EMAIL_CONTENT`: HTML content for failure notifications (default: "<h3>Dear Team,</h3><p>The DAG <strong>'sales_data_pipeline'</strong> failed.</p>")
+  - `DBT_DIR`: Directory path for the DBT project
+  - `SALES_PROJECT_NAME`: Name of the sales project
+  - `EMAIL_RECIPIENT`: Recipient email address for failure notifications
+  - `FAILURE_EMAIL_SUBJECT`: Subject line for failure notifications
+  - `FAILURE_EMAIL_CONTENT`: HTML content for failure notifications
 
 Dependencies:
 - Requires `subprocess` module for running shell commands.
@@ -30,45 +30,41 @@ To use this script, ensure that all required Airflow variables are set. The DAG 
 
 import subprocess
 
+from airflow import DAG
 from airflow.exceptions import AirflowException
 from airflow.models import Variable
 from airflow.operators.email import EmailOperator
 from airflow.operators.python import PythonOperator
-
-from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.utils.task_group import TaskGroup
+from utils.variables import load_environment_variables
+
+# Load environment-specific variables
+env_vars = load_environment_variables()
 
 # Retrieve configuration settings from Airflow Variables
-dbt_directory = Variable.get(
-    "DBT_DIR", default_var='/Users/rakeshsingh/Personal/dbt/')
-project_name = Variable.get(
-    "SALES_PROJECT_NAME", default_var='Sales-Analytics')
-email_recipient = Variable.get(
-    "EMAIL_RECIPIENT", default_var='rakesh.singh@tothenew.com')
-failure_email_subject = Variable.get(
-    "FAILURE_EMAIL_SUBJECT", default_var='DAG Failure Notification')
-failure_email_content = Variable.get(
-    "FAILURE_EMAIL_CONTENT",
-    default_var="""<h3>Dear Team,</h3><p>The DAG <strong>'sales_data_pipeline'</strong> failed.</p>"""
-)
-dbt_sales_project_directory = f'{dbt_directory}/{project_name}/'
+dbt_sales_project_directory = Variable.get(f"DBT_DIR_{env_vars['env']}")
+project_name = Variable.get("SALES_PROJECT_NAME")
+email_recipient = Variable.get("EMAIL_RECIPIENT")
+failure_email_subject = Variable.get("FAILURE_EMAIL_SUBJECT")
+failure_email_content = Variable.get("FAILURE_EMAIL_CONTENT")
 
 # Define default arguments for the DAG
 default_args = {
     'owner': 'airflow',
-    'retries': 0
+    'retries': 0  # No retries if a task fails, can be adjusted based on the use case
 }
 
-# Define the DAG
+# Define the DAG for processing liquor sales data using dbt
 dag = DAG(
     'process_liquor_sales_data',
     default_args=default_args,
-    max_active_runs=1,
+    max_active_runs=1,  # Ensures that only one instance of the DAG runs at a time
     description='Advanced DAG for running dbt models with error handling and notifications',
-    schedule_interval='@daily',
-    start_date=days_ago(1),
-    catchup=False,
+    schedule_interval='@daily',  # Scheduled to run daily
+    start_date=days_ago(1),  # Sets the start date to one day ago
+    catchup=False,  # Prevents Airflow from running missed DAG instances
+    tags=['liquor_sales', env_vars["env"]]  # Tags to categorize the DAG
 )
 
 
@@ -84,18 +80,22 @@ def run_dbt_command(command: str, cwd: str = dbt_sales_project_directory) -> Non
         AirflowException: If the command returns a non-zero exit code.
     """
     try:
+        # Run the dbt command and capture the output
         result = subprocess.run(
             command,
-            shell=True,
-            check=True,
-            cwd=cwd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            shell=True,  # Execute command through the shell
+            check=True,  # Raise CalledProcessError if command fails
+            cwd=cwd,  # Working directory for the command
+            stdout=subprocess.PIPE,  # Capture standard output
+            stderr=subprocess.PIPE,  # Capture standard error
         )
+        # Log the standard output
         print(result.stdout.decode())
+        # Log any errors if present
         if result.stderr:
             print(result.stderr.decode())
     except subprocess.CalledProcessError as e:
+        # Raise an Airflow exception if the dbt command fails
         raise AirflowException(
             f"Error running dbt command '{command}': {e}") from e
 
@@ -121,26 +121,27 @@ def generate_dbt_docs() -> None:
     run_dbt_command("dbt docs generate")
 
 
-# Define tasks in a TaskGroup for better organization
+# Define tasks in a TaskGroup for better organization of dbt-related tasks
 with TaskGroup(group_id='dbt_tasks', dag=dag) as dbt_tasks:
     run_dbt = PythonOperator(
         task_id='run_dbt',
-        python_callable=run_dbt_run,
+        python_callable=run_dbt_run,  # Executes dbt models
         dag=dag,
     )
 
     test_dbt = PythonOperator(
         task_id='test_dbt',
-        python_callable=run_dbt_test,
+        python_callable=run_dbt_test,  # Runs dbt tests
         dag=dag,
     )
 
     generate_docs = PythonOperator(
         task_id='generate_dbt_docs',
-        python_callable=generate_dbt_docs,
+        python_callable=generate_dbt_docs,  # Generates dbt documentation
         dag=dag,
     )
 
+    # Set the execution order of the tasks within the TaskGroup
     run_dbt >> test_dbt >> generate_docs  # type: ignore
 
 # Task to notify if the pipeline or any tasks fail
@@ -149,9 +150,9 @@ notify_failure_email = EmailOperator(
     to=[email_recipient],
     subject=failure_email_subject,
     html_content=failure_email_content.replace('{dag.dag_id}', dag.dag_id),
-    trigger_rule='one_failed',
+    trigger_rule='one_failed',  # Triggers this task if any previous task fails
     dag=dag,
 )
 
-# Set task dependencies
+# Set task dependencies to ensure the correct order of operations
 dbt_tasks >> notify_failure_email  # type: ignore

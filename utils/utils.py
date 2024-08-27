@@ -38,7 +38,6 @@ def download_files_from_s3(bucket_name: str, file_prefix: str, local_path_dir: s
     :param file_prefix: Prefix of the files to download
     :param local_path_dir: Local directory to save the downloaded files
     :param aws_conn_id: Airflow connection ID for AWS
-    :param kwargs: Additional arguments
     :raises Exception: If an error occurs during file download
     """
     try:
@@ -77,18 +76,19 @@ def download_files_from_s3(bucket_name: str, file_prefix: str, local_path_dir: s
         raise
 
 
-def upload_files_to_s3(bucket_name: str, local_file_path: str, s3_key: str = None) -> None:  # type: ignore
+def upload_files_to_s3(bucket_name: str, local_file_path: str, aws_conn_id: str, s3_key: str = None) -> None:  # type: ignore
     """
     Upload a file to an S3 bucket.
 
     :param bucket_name: Name of the S3 bucket
     :param local_file_path: Path to the local file to upload
+    :param aws_conn_id: Airflow connection ID for AWS
     :param s3_key: Key for the file in S3 (optional, defaults to the file name)
     :raises Exception: If an error occurs during file upload
     """
     if not s3_key:
         s3_key = os.path.basename(local_file_path)
-    hook = S3Hook(aws_conn_id='aws_default')  # Adjust aws_conn_id as needed
+    hook = S3Hook(aws_conn_id=aws_conn_id)
     hook.load_file(filename=local_file_path,
                    bucket_name=bucket_name, key=s3_key, replace=True)
     logging.info("File uploaded to s3://%s/%s", bucket_name, s3_key)
@@ -103,7 +103,6 @@ def ingest_files_to_postgres(local_path_dir: str, file_prefix: str, database_nam
     :param database_name: Name of the PostgreSQL database
     :param table_name: Name of the table to ingest data into
     :param postgres_conn_id: Airflow connection ID for PostgreSQL
-    :param kwargs: Additional arguments
     :raises Exception: If an error occurs during file ingestion
     """
     try:
@@ -141,7 +140,6 @@ def clean_local_files(local_path_dir: str) -> None:
     Remove a local directory and its contents.
 
     :param local_path_dir: Path to the local directory to remove
-    :param kwargs: Additional arguments
     :raises Exception: If an error occurs during file cleanup
     """
     try:
@@ -164,7 +162,6 @@ def check_and_create_table(database_name: str, table_name: str, postgres_conn_id
     :param table_name: Name of the table to check/create
     :param postgres_conn_id: Airflow connection ID for PostgreSQL
     :param create_table_sql: SQL statement to create the table
-    :param kwargs: Additional arguments
     :raises Exception: If an error occurs during table creation
     """
     try:
@@ -207,7 +204,6 @@ def truncate_table(database_name: str, table_name: str, postgres_conn_id: str) -
     :param database_name: Name of the PostgreSQL database
     :param table_name: Name of the table to truncate
     :param postgres_conn_id: Airflow connection ID for PostgreSQL
-    :param kwargs: Additional arguments
     :raises Exception: If an error occurs during table truncation
     """
     try:
