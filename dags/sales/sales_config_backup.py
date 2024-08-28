@@ -105,6 +105,7 @@ def export_connections() -> None:
 # Define the DAG
 dag = DAG(
     'sales_config_backup',
+    default_args=env_vars["default_args"],
     schedule_interval=None,  # Manual trigger
     start_date=datetime(2024, 1, 1),
     catchup=False,  # Prevents backfilling

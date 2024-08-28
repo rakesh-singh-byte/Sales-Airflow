@@ -1,7 +1,7 @@
 """
-process_liquor_sales_data.py
+process_all_sales_data.py
 
-This module defines an Apache Airflow DAG for processing liquor sales data using dbt (data build tool).
+This module defines an Apache Airflow DAG for processing all sales data including liquor using dbt (data build tool).
 The DAG runs dbt commands to execute, test, and generate documentation for dbt models. It also includes error handling
 and notifications for task failures.
 
@@ -49,22 +49,17 @@ email_recipient = Variable.get("EMAIL_RECIPIENT")
 failure_email_subject = Variable.get("FAILURE_EMAIL_SUBJECT")
 failure_email_content = Variable.get("FAILURE_EMAIL_CONTENT")
 
-# Define default arguments for the DAG
-default_args = {
-    'owner': 'airflow',
-    'retries': 0  # No retries if a task fails, can be adjusted based on the use case
-}
 
-# Define the DAG for processing liquor sales data using dbt
+# Define the DAG for processing all sales data using dbt
 dag = DAG(
-    'process_liquor_sales_data',
-    default_args=default_args,
+    'process_all_sales_data',
+    default_args=env_vars["default_args"],
     max_active_runs=1,  # Ensures that only one instance of the DAG runs at a time
     description='Advanced DAG for running dbt models with error handling and notifications',
     schedule_interval='@daily',  # Scheduled to run daily
     start_date=days_ago(1),  # Sets the start date to one day ago
     catchup=False,  # Prevents Airflow from running missed DAG instances
-    tags=['liquor_sales', env_vars["env"]]  # Tags to categorize the DAG
+    tags=[env_vars["env"]]  # Tags to categorize the DAG
 )
 
 

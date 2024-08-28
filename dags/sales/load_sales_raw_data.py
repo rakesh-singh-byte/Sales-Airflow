@@ -79,17 +79,11 @@ data_directory = os.path.join(dbt_directory, 'data')
 # Ensure the data directory exists; create it if necessary
 os.makedirs(data_directory, exist_ok=True)
 
-# Define default arguments for the DAG
-default_args = {
-    'owner': 'airflow',
-    'retries': 0  # No retries if a task fails, can be adjusted based on the use case
-}
-
 
 # Define the DAG for the sales data pipeline
 dag = DAG(
     'sales_data_pipeline',
-    default_args=default_args,
+    default_args=env_vars["default_args"],
     max_active_runs=1,  # Ensures that only one instance of the DAG runs at a time
     description='Pipeline to download sales raw data from S3, ingest into Postgres, and cleanup local files.',
     schedule_interval='@daily',  # Scheduled to run daily

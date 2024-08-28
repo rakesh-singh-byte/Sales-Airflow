@@ -1,0 +1,47 @@
+# Python specific ignores
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.env
+
+# Airflow specific ignores
+airflow.db
+airflow.cfg
+unittests.cfg
+webserver_config.py
+# Airflow logging and pid files
+logs/
+pidfile
+*.pid
+
+# Airflow SQLite DB file
+# Duplicate line removed
+
+# Airflow Dags folder if needed
+# Uncomment the line below if you want to ignore all Dags
+# dags/
+
+# Ignore airflow scheduler and webserver logs
+scheduler.log
+webserver.log
+
+# Ignore Airflow plugins
+plugins/
+
+# Ignore data files if any
+data/
+*.csv
+*.json
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# MacOS specific ignores
+.DS_Store
